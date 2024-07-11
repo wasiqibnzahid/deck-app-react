@@ -1,0 +1,74 @@
+[
+  {
+    "position": [-122.41357, 37.7853],
+    "radius": 40,
+    "color": [169, 169, 169],
+    "image": "https://i.pinimg.com/564x/23/6e/5a/236e5af3426b5e01ac1e6948712721a7.jpg",
+    "selected": false,
+    "id": 1
+  },
+  {
+    "position": [-122.42169, 37.781],
+    "radius": 40,
+    "color": [169, 169, 169],
+    "image": "https://i.pinimg.com/564x/36/c0/12/36c0123e0d97b72d303a82113b3390e5.jpg",
+    "selected": false,
+    "id": 2
+  },
+  {
+    "position": [-122.41669, 37.778],
+    "radius": 40,
+    "color": [169, 169, 169],
+    "image": "https://i.pinimg.com/564x/62/8f/4f/628f4f71a26eb68d363abe5203288747.jpg",
+    "selected": false,
+    "id": 3
+  },
+  {
+    "position": [-122.40357, 37.7853],
+    "radius": 40,
+    "color": [169, 169, 169],
+    "image": "https://i.pinimg.com/564x/23/6e/5a/236e5af3426b5e01ac1e6948712721a7.jpg",
+    "selected": false,
+    "id": 4
+  },
+  {
+    "position": [-122.46169, 37.781],
+    "radius": 40,
+    "color": [169, 169, 169],
+    "image": "https://i.pinimg.com/564x/36/c0/12/36c0123e0d97b72d303a82113b3390e5.jpg",
+    "selected": false,
+    "id": 5
+  },
+  {
+    "position": [-122.46994, 37.778],
+    "radius": 40,
+    "color": [169, 169, 169],
+    "image": "https://i.pinimg.com/564x/62/8f/4f/628f4f71a26eb68d363abe5203288747.jpg",
+    "selected": false,
+    "id": 6
+  },
+  {
+    "position": [-122.41057, 37.7853],
+    "radius": 40,
+    "color": [169, 169, 169],
+    "image": "https://i.pinimg.com/564x/23/6e/5a/236e5af3426b5e01ac1e6948712721a7.jpg",
+    "selected": false,
+    "id": 7
+  },
+  {
+    "position": [-122.41000, 37.781],
+    "radius": 40,
+    "color": [169, 169, 169],
+    "image": "https://i.pinimg.com/564x/36/c0/12/36c0123e0d97b72d303a82113b3390e5.jpg",
+    "selected": false,
+    "id": 8
+  },
+  {
+    "position": [-122.39669, 37.778],
+    "radius": 40,
+    "color": [169, 169, 169],
+    "image": "https://i.pinimg.com/564x/62/8f/4f/628f4f71a26eb68d363abe5203288747.jpg",
+    "selected": false,
+    "id": 9
+  }
+]
