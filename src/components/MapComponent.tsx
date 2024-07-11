@@ -21,7 +21,8 @@ const INITIAL_VIEW_STATE: any = {
 const mapboxToken =
   "pk.eyJ1IjoidWNmLW1hcGJveCIsImEiOiJjbDBiYzlveHgwdnF0M2NtZzUzZWZuNWZ4In0.l9J8ptz3MKwaU9I4PtCcig";
 const defaultColor = [169, 169, 169];
-const selectedColor = [129, 129, 139];
+
+const selectedColor = [57, 117, 206];
 
 interface MapComponentProps {
   onItemClick?: (item: TData) => void;
