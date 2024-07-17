@@ -1,8 +1,21 @@
 export interface TData {
-  position: number[];
-  radius: number;
-  color: number[];
-  image: string;
+  HId: number;
+  IId: number;
+  HPId: string;
+  C0: number;
+  C1: number;
+  C2: number;
+  SLat: number;
+  SLong: number;
+  SPId: string;
+  D2Sm: number;
+  HIdDensity: number;
+  Title: string;
+  Description: string;
+  Image: string;
+  weeknumber: number;
+  weekly_sales: number;
+  distance: number;
   selected: boolean;
-  id: number;
+  color: any;
 }
