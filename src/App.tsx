@@ -25,6 +25,7 @@ export const App = () => {
     async function () {
       setLoading(true);
       let apiRes: TData[] = [];
+      let all: TData[] = []
       if (searchText) {
         apiRes = await searchApi(
           searchText,
@@ -35,14 +36,19 @@ export const App = () => {
           36.7849143994791,
           -92.1959309706847,
           abortControllerRef.current.signal
-        ).catch((e) => []);
+        ).then(data => {
+          all = data.all
+          return data.closest
+        }).catch((e) => []);
       }
 
       apiRes.forEach((item) => (item.selected = true));
       setSelectedItems(apiRes);
-      setData(apiRes);
+      if (all.length) {
+        setData(all);
+      }
       // setTimeout(() => {
-        setLoading(false);
+      setLoading(false);
       // }, 2000);
     },
     [searchText]

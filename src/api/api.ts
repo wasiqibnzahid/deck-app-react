@@ -14,9 +14,15 @@ export async function getClosest(
   lat: number,
   long: number,
   signal: AbortSignal
-) {
+): Promise<{
+  closest: TData[],
+  all: TData[]
+}> {
   return axios
-    .get<TData[]>(routes.closest, {
+    .get<{
+      closest: TData[],
+      all: TData[]
+    }>(routes.closest, {
       params: {
         longitude: long,
         latitude: lat,
