@@ -27,16 +27,27 @@ const selectedColor: any = [57, 117, 206];
 interface MapComponentProps {
   onItemClick?: (item: TData) => void;
   data: TData[];
+  lat?: number;
+  long?: number;
+  setLocation?: (lat: number, long: number) => void;
+  searchText?: string
 }
 const MapComponent: React.FC<MapComponentProps> = ({
   onItemClick = () => {},
   data,
+  lat,
+  long,
+  setLocation,
 }) => {
   const [itemList, setItemList] = useState<TData[]>(data);
   const [selectedItem, setSelectedItem] = useState<
     { x: number; y: number } & TData
   >(null);
-  const [initialState, setInitialState] = useState({ ...INITIAL_VIEW_STATE });
+  const [initialState, _setInitialState] = useState({ ...INITIAL_VIEW_STATE });
+  function setInitialState(i: typeof initialState) {
+    _setInitialState(i);
+    setLocation(i.latitude, i.longitude);
+  }
   const handleClick = ({ object = null }: { object?: TData }) => {
     if (object) {
       onItemClick(object);
@@ -58,11 +69,11 @@ const MapComponent: React.FC<MapComponentProps> = ({
     }
   };
   useEffect(() => {
-    if (data?.[0]) {
+    if (lat && long && itemList.length === 0) {
       setInitialState({
         ...initialState,
-        latitude: data[0].SLat,
-        longitude: data[0].SLong,
+        latitude: lat,
+        longitude: long,
       });
     }
     setItemList(data);
