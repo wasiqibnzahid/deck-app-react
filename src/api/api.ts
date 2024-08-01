@@ -15,13 +15,13 @@ export async function getClosest(
   long: number,
   signal: AbortSignal
 ): Promise<{
-  closest: TData[],
-  all: TData[]
+  closest: TData[];
+  all: TData[];
 }> {
   return axios
     .get<{
-      closest: TData[],
-      all: TData[]
+      closest: TData[];
+      all: TData[];
     }>(routes.closest, {
       params: {
         longitude: long,
@@ -32,11 +32,16 @@ export async function getClosest(
     .then((res) => res.data);
 }
 
-export async function searchApi(text: string, signal: AbortSignal) {
+export async function searchApi(
+  text: string,
+  mode: "bigquery" | "model",
+  signal: AbortSignal
+) {
   return axios
     .get<TData[]>(routes.search, {
       params: {
         search_text: text,
+        mode: mode, 
       },
       signal,
     })

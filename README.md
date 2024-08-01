@@ -1,3 +1,12 @@
+# Running Backend
+Backend has its own readme
+Change this to the path of the backend - this works fine on local - might have to change for deployment
+This is in api.ts file
+```
+  const baseUrl = "http://127.0.0.1:8000";
+
+```
+
 # Getting Started with Create React App
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).

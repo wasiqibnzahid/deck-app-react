@@ -30,13 +30,15 @@ interface MapComponentProps {
   lat?: number;
   long?: number;
   setLocation?: (lat: number, long: number) => void;
-  searchText?: string
+  searchText?: string;
+  map: number[];
 }
 const MapComponent: React.FC<MapComponentProps> = ({
   onItemClick = () => {},
   data,
   lat,
   long,
+  map,
   setLocation,
 }) => {
   const [itemList, setItemList] = useState<TData[]>(data);
@@ -101,6 +103,10 @@ const MapComponent: React.FC<MapComponentProps> = ({
       }),
     ];
   }, [itemList]);
+
+  useEffect(() => {
+    setInitialState({ ...initialState, latitude: map[0], longitude: map[1] });
+  }, [map]);
 
   return (
     <div
