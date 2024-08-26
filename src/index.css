@@ -6,8 +6,16 @@
   padding: 0;
   margin: 0;
   box-sizing: border-box;
+  color: #fff;
 }
 body {
-  background-color: #282c34;
-  overflow: hidden;
+  background-color: #1c1e22 !important;
+  /* overflow: hidden; */
+}
+input {
+  color-scheme: dark;
+}
+
+.transition-transform {
+  transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
 }

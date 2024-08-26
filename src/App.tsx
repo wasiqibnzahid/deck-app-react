@@ -2,6 +2,26 @@ import MapComponent from "./components/MapComponent";
 import { useEffect, useRef, useState, useCallback, useMemo } from "react";
 import { TData } from "./types/types";
 import { getClosest, searchApi } from "./api/api";
+import {
+  FormLabel,
+  Input,
+  Modal,
+  ModalBody,
+  ModalCloseButton,
+  ModalContent,
+  ModalOverlay,
+  Select,
+} from "@chakra-ui/react";
+import { DatePicker } from "antd";
+import { CustomSelect } from "./components/CustomSelect";
+import {
+  AutoComplete,
+  AutoCompleteInput,
+  AutoCompleteItem,
+  AutoCompleteList,
+} from "@choc-ui/chakra-autocomplete";
+import Chart from "./components/Chart";
+import dayjs from "dayjs";
 
 function haversineDistance(
   lat1: number,
@@ -90,32 +110,37 @@ function hasMovedSignificantly(
     newLatitude,
     newLongitude
   );
-  console.log("THE DISTANCE IS ", distance);
   return distance >= thresholdMeters;
 }
 
 export const App = () => {
   const [isFirst, setIsFirst] = useState(true);
   const [selectedItems, setSelectedItems] = useState<TData[]>([]);
-  const [mode, setMode] = useState<"bigquery" | "model">("bigquery");
+  const [mode, setMode] = useState<"bigquery" | "model" | "id">("bigquery");
   const [searchText, setSearchText] = useState("");
   const [data, setData] = useState<TData[]>([]);
   const [loading, setLoading] = useState(true);
+  const [singleSelectedItem, setSingleSelectedItem] = useState<TData | null>(
+    null
+  );
   const [coordinates, setCoordinates] = useState({
     lat: 0,
     long: 0,
   });
   const onItemClick = (newItem: TData) => {
-    const itemIndex = selectedItems.findIndex(
-      (item) => item.IId === newItem.IId
-    );
-    const newList = [...selectedItems];
-    if (itemIndex === -1) {
-      newList.push(newItem);
-    } else {
-      newList.splice(itemIndex, 1);
-    }
-    setSelectedItems(newList);
+    setSingleSelectedItem(newItem);
+    // const itemIndex = selectedItems.findIndex(
+    //   (item) => item.IId === newItem.IId
+    // );
+    // const newList = [...selectedItems];
+    // if (itemIndex === -1) {
+    //   newList.push(newItem);
+    // } else {
+    //   newList.splice(itemIndex, 1);
+    // }
+    setSelectedItems(data.filter((item) => item.IId === newItem.IId));
+    setMode("id");
+    setSearchText(newItem.IId.toString());
   };
 
   const myFn = useCallback(
@@ -124,16 +149,17 @@ export const App = () => {
         if (abortControllerRef.current) {
           abortControllerRef.current.abort();
         }
+        setSingleSelectedItem(null);
         setLoading(true);
         abortControllerRef.current = new AbortController();
         let isError = false;
         const res = await getClosest(
           lat || 36.7849143994791,
           long || -92.1959309706847,
+          dateValue,
           abortControllerRef.current.signal
         )
           .then((data) => {
-            console.log("HERE IS DATA");
             const closestIds = data.closest.map((item) => item.IId);
             const all = data.all.map((item) =>
               closestIds.includes(item.IId) ? { ...item, selected: true } : item
@@ -146,24 +172,33 @@ export const App = () => {
             isError = true;
             return [];
           });
+
         if (isError) return;
+        if (mode === "id") setSingleSelectedItem(res?.[0] || null);
+        // setData(res);
         setSelectedItems(res);
       }
     },
     [searchText, coordinates]
   );
+  const [dateValue, setDateValue] = useState({
+    start: "2024-01-01",
+    end: "2024-12-30",
+  });
   const abortControllerRef = useRef(new AbortController());
   const fetchData = useCallback(
     async function () {
-      console.log("SETTING TRUE");
       setLoading(true);
       let apiRes: TData[] = [];
       let all: TData[] = [];
       let isError = false;
+      setSingleSelectedItem(null);
       if (searchText) {
         apiRes = await searchApi(
           searchText,
           mode,
+          coordinates,
+          dateValue,
           abortControllerRef.current.signal
         ).catch((e) => {
           isError = true;
@@ -173,14 +208,15 @@ export const App = () => {
         apiRes = await getClosest(
           36.7849143994791,
           -92.1959309706847,
+          dateValue,
           abortControllerRef.current.signal
         )
           .then((data) => {
-            console.log("HERE IS DATA");
             const closestIds = data.closest.map((item) => item.IId);
             all = data.all.map((item) =>
               closestIds.includes(item.IId) ? { ...item, selected: true } : item
             );
+            setData(all);
             return data.closest;
           })
           .catch((e) => {
@@ -188,19 +224,22 @@ export const App = () => {
             return [];
           });
       }
-      console.log("API RES IS ", apiRes);
       if (isError) return;
       setSelectedItems([...apiRes]);
-      if (all.length) {
-        setData(all);
+      console.log("HERE", mode, apiRes?.[0]);
+      if (mode === "id") {
+        setSingleSelectedItem(apiRes?.[0] || null);
       }
-
-      console.log("SETTING FALSE");
+      // if (all.length) {
+      //   setData(all);
+      // }
 
       setLoading(false);
     },
-    [searchText]
+    [searchText, dateValue]
   );
+
+  const [showImg, setShowImg] = useState(false);
   useEffect(() => {
     if (abortControllerRef.current) {
       abortControllerRef.current.abort();
@@ -208,6 +247,14 @@ export const App = () => {
     abortControllerRef.current = new AbortController();
     fetchData().catch();
   }, [fetchData]);
+  function clear() {
+    setSingleSelectedItem(null);
+    setSearchText("");
+    setMode("bigquery");
+  }
+  const handleSelect = (param: any) => {
+    console.log(param);
+  };
   const [map, setMap] = useState(states[0]?.value);
   const dataToUse = useMemo(() => {
     const map: any = {};
@@ -220,14 +267,41 @@ export const App = () => {
   return (
     <div className="flex py-4 px-8 h-screen">
       <div className="pr-2 w-1/2">
+        <div className="mb-2 flex justify-end items-center gap-2">
+          <div>
+            <label className="text-white" htmlFor="start">
+              Start
+            </label>
+            <Input
+              value={dateValue.start}
+              onChange={(e) =>
+                setDateValue((old) => ({ ...old, start: e.target.value }))
+              }
+              type="date"
+              id="start"
+            />
+          </div>
+          <div>
+            <label className="text-white" htmlFor="end">
+              End
+            </label>
+            <Input
+              value={dateValue.end}
+              onChange={(e) =>
+                setDateValue((old) => ({ ...old, end: e.target.value }))
+              }
+              id="end"
+              type="date"
+            />
+          </div>
+        </div>
         <MapComponent
           map={map}
           onItemClick={onItemClick}
           data={dataToUse}
-          lat={selectedItems?.[0]?.SLat}
-          long={selectedItems?.[0]?.SLong}
+          lat={singleSelectedItem?.SLat || selectedItems?.[0]?.SLat}
+          long={singleSelectedItem?.SLong || selectedItems?.[0]?.SLong}
           setLocation={(lat, long) => {
-            console.log("PREV VALS", coordinates.lat, coordinates.long);
             if (coordinates.lat && coordinates.long) {
               if (
                 hasMovedSignificantly(
@@ -254,24 +328,26 @@ export const App = () => {
 
       <div className="w-1/2 pl-2">
         <div className="w-[300px] ml-auto mb-2">
-          <select
+          <CustomSelect
+            color="white"
             id="mode"
-            className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+            // className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
             value={mode}
-            onChange={(e) => {
-              e.target.value === "bigquery"
-                ? setMode("bigquery")
-                : setMode("model");
+            onChange={(e: any) => {
+              setMode(e.target.value);
             }}
           >
             <option value="bigquery">BigQuery</option>
             <option value="model">model</option>
-          </select>
+            <option value="id">id</option>
+          </CustomSelect>
         </div>
         <div className="w-[300px] ml-auto">
-          <select
+          <CustomSelect
             id="states"
-            className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+            // className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+            // className="text-white"
+            color="white"
             value={JSON.stringify(map)}
             onChange={(e) => {
               const val = JSON.parse(e.target.value);
@@ -283,15 +359,45 @@ export const App = () => {
                 {state.name}
               </option>
             ))}
-          </select>
+          </CustomSelect>
         </div>
-        <input
+        {/* <Input
           value={searchText}
           onChange={(e) => setSearchText(e.target.value)}
           className="block my-2 mx-auto shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
           type="text"
           placeholder="Search"
-        />
+        /> */}
+        <div className="mb-2 px-2 ml-auto">
+          <FormLabel>Search</FormLabel>
+
+          <AutoComplete
+            openOnFocus
+            value={searchText}
+            onChange={(e) => {
+              // console.log("ZE E", /e);
+              setSearchText(e);
+            }}
+          >
+            <AutoCompleteInput
+              onChange={(e) => setSearchText(e.target.value)}
+              color="white"
+            />
+            <AutoCompleteList color="red">
+              {data.map((item, cid) => (
+                <AutoCompleteItem
+                  key={`option-${cid}`}
+                  value={item.Title}
+                  textTransform="capitalize"
+                  color="black"
+                >
+                  {item.Title}
+                </AutoCompleteItem>
+              ))}
+            </AutoCompleteList>
+          </AutoComplete>
+        </div>
+
         {loading && (
           <div className="flex justify-center items-center h-full">
             <div
@@ -299,26 +405,75 @@ export const App = () => {
                 border: "solid",
                 borderLeftColor: "transparent",
               }}
-              className="animate-spin h-16 w-16 rounded-full border-black border-r-transparent"
+              className="animate-spin h-16 w-16 rounded-full !border-white !border-r-transparent"
             ></div>
           </div>
         )}
-        {!loading && (
-          <div className="flex max-w-100% flex-wrap max-h-[calc(100%_-_50px)] overflow-y-auto">
+        {!loading && !singleSelectedItem && (
+          <div className="flex max-w-100% flex-wrap max-h-[calc(100%_-_168px)] overflow-y-auto">
             {selectedItems.map((item) => (
               <div
                 key={item.IId}
                 className="flex w-[20%] align-center px-2 my-2"
               >
                 <img
-                  className="w-full object-contain"
-                  src={item.Image}
+                  onClick={() => {
+                    setMap([item?.SLat, item?.SLong]);
+                    onItemClick(item);
+                  }}
+                  className="w-full object-contain rounded-md transform transition-transform hover:scale-110 hover:shadow-2xl cursor-pointer"
+                  src={item.Image}  
                   alt={item.Image}
                 />
               </div>
             ))}
           </div>
         )}
+        {!loading && singleSelectedItem && (
+          <div>
+            <div
+              key={singleSelectedItem.IId}
+              className="relative flex w-full items-center justify-center pt-2 px-2 my-2"
+            >
+              <div
+                onClick={clear}
+                className="absolute right-2 top-2 px-2 rounded-md text-lg bg-[#131416]"
+              >
+                x
+              </div>
+              <img
+                onClick={() => setShowImg(true)}
+                className="w-[200px] object-contain rounded-md transform"
+                src={singleSelectedItem.Image}
+                alt={singleSelectedItem.Image}
+              />
+            </div>
+            <Chart data={singleSelectedItem?.forecast_records || []} />
+          </div>
+        )}
+        {showImg && (
+          <Modal isOpen={showImg} onClose={() => setShowImg(false)}>
+            <ModalOverlay onClick={() => setShowImg(false)} />
+            <ModalBody>
+              <div
+                onClick={() => setShowImg(false)}
+                className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-[100000]"
+                style={{ width: "80vw", height: "80vh" }}
+              >
+                <img
+                  style={{
+                    width: "100%",
+                    height: "100%",
+                    objectFit: "contain",
+                  }}
+                  src={singleSelectedItem?.Image}
+                  alt={singleSelectedItem?.Image}
+                />
+              </div>
+            </ModalBody>
+          </Modal>
+        )}
+        {/* <Dialog */}
       </div>
     </div>
   );

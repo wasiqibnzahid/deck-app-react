@@ -18,4 +18,12 @@ export interface TData {
   distance: number;
   selected: boolean;
   color: any;
+  avg_weekly_sales: number;
+  forecast_records?: SalesData[];
+}
+
+export interface SalesData {
+  date: string; // The date in string format
+  forecast: number; // The forecast value
+  weekly_sales: number; // The weekly sales value
 }

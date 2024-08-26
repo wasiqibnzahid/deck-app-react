@@ -13,6 +13,7 @@ export const routes = getRoutes();
 export async function getClosest(
   lat: number,
   long: number,
+  dateVal: { start: string; end: string },
   signal: AbortSignal
 ): Promise<{
   closest: TData[];
@@ -26,6 +27,7 @@ export async function getClosest(
       params: {
         longitude: long,
         latitude: lat,
+        ...dateVal,
       },
       signal,
     })
@@ -34,14 +36,19 @@ export async function getClosest(
 
 export async function searchApi(
   text: string,
-  mode: "bigquery" | "model",
+  mode: "bigquery" | "model" | "id",
+  coordinates: { lat: number; long: number },
+  dateVal: { start: string; end: string },
   signal: AbortSignal
 ) {
   return axios
     .get<TData[]>(routes.search, {
       params: {
         search_text: text,
-        mode: mode, 
+        mode: mode,
+        latitude: coordinates.lat,
+        longitude: coordinates.long,
+        ...dateVal,
       },
       signal,
     })
