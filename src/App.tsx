@@ -128,7 +128,16 @@ export const App = () => {
     long: 0,
   });
   const onItemClick = (newItem: TData) => {
-    setSingleSelectedItem(newItem);
+    if (
+      newItem.IId !== singleSelectedItem?.IId &&
+      newItem.SLat !== singleSelectedItem?.SLat &&
+      newItem.SLong !== singleSelectedItem?.SLong
+    ) {
+      setSingleSelectedItem(newItem);
+      setSelectedItems(data.filter((item) => item.IId === newItem.IId));
+      setMode("id");
+      setSearchText(newItem.IId.toString());
+    }
     // const itemIndex = selectedItems.findIndex(
     //   (item) => item.IId === newItem.IId
     // );
@@ -138,9 +147,6 @@ export const App = () => {
     // } else {
     //   newList.splice(itemIndex, 1);
     // }
-    setSelectedItems(data.filter((item) => item.IId === newItem.IId));
-    setMode("id");
-    setSearchText(newItem.IId.toString());
   };
 
   const myFn = useCallback(
@@ -415,6 +421,11 @@ export const App = () => {
             ></div>
           </div>
         )}
+        {!loading && !singleSelectedItem && selectedItems.length === 0 && (
+          <div className="text-white text-center">
+            No items found with given filters.
+          </div>
+        )}
         {!loading && !singleSelectedItem && (
           <div className="flex max-w-100% flex-wrap max-h-[calc(100%_-_168px)] overflow-y-auto">
             {selectedItems.map((item) => (
@@ -443,7 +454,10 @@ export const App = () => {
             >
               <div
                 onClick={clear}
-                className="absolute right-2 top-2 px-2 rounded-md text-lg bg-[#131416]"
+                className="absolute right-2 top-2 px-[10px] pb-[5px] rounded-md text-lg bg-[#131416]"
+                style={{
+                  cursor: "pointer",
+                }}
               >
                 x
               </div>
