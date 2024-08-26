@@ -206,8 +206,8 @@ export const App = () => {
         });
       } else {
         apiRes = await getClosest(
-          36.7849143994791,
-          -92.1959309706847,
+          coordinates.lat || 36.7849143994791,
+          coordinates.long || -92.1959309706847,
           dateValue,
           abortControllerRef.current.signal
         )
@@ -236,7 +236,7 @@ export const App = () => {
 
       setLoading(false);
     },
-    [searchText, dateValue]
+    [searchText, dateValue, coordinates]
   );
 
   const [showImg, setShowImg] = useState(false);
@@ -246,7 +246,7 @@ export const App = () => {
     }
     abortControllerRef.current = new AbortController();
     fetchData().catch();
-  }, [fetchData]);
+  }, [searchText, dateValue]);
   function clear() {
     setSingleSelectedItem(null);
     setSearchText("");
@@ -302,7 +302,9 @@ export const App = () => {
           lat={singleSelectedItem?.SLat || selectedItems?.[0]?.SLat}
           long={singleSelectedItem?.SLong || selectedItems?.[0]?.SLong}
           setLocation={(lat, long) => {
-            if (coordinates.lat && coordinates.long) {
+            if (singleSelectedItem) {
+              setCoordinates({ lat, long });
+            } else if (coordinates.lat && coordinates.long) {
               if (
                 hasMovedSignificantly(
                   lat,
@@ -352,6 +354,10 @@ export const App = () => {
             onChange={(e) => {
               const val = JSON.parse(e.target.value);
               setMap(val);
+              setSingleSelectedItem(null);
+              if (mode === "id") {
+                setMode("bigquery");
+              }
             }}
           >
             {states.map((state) => (
@@ -422,7 +428,7 @@ export const App = () => {
                     onItemClick(item);
                   }}
                   className="w-full object-contain rounded-md transform transition-transform hover:scale-110 hover:shadow-2xl cursor-pointer"
-                  src={item.Image}  
+                  src={item.Image}
                   alt={item.Image}
                 />
               </div>
