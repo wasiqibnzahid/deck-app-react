@@ -163,6 +163,7 @@ export const App = () => {
           lat || 36.7849143994791,
           long || -92.1959309706847,
           dateValue,
+          isFirst,
           abortControllerRef.current.signal
         )
           .then((data) => {
@@ -170,7 +171,7 @@ export const App = () => {
             const all = data.all.map((item) =>
               closestIds.includes(item.IId) ? { ...item, selected: true } : item
             );
-            setData(all);
+            if (all.length) setData(all);
             setLoading(false);
             return data.closest;
           })
@@ -215,6 +216,7 @@ export const App = () => {
           coordinates.lat || 36.7849143994791,
           coordinates.long || -92.1959309706847,
           dateValue,
+          isFirst,
           abortControllerRef.current.signal
         )
           .then((data) => {
@@ -222,7 +224,7 @@ export const App = () => {
             all = data.all.map((item) =>
               closestIds.includes(item.IId) ? { ...item, selected: true } : item
             );
-            setData(all);
+            if (all.length) setData(all);
             return data.closest;
           })
           .catch((e) => {

@@ -14,6 +14,7 @@ export async function getClosest(
   lat: number,
   long: number,
   dateVal: { start: string; end: string },
+  isFirst: boolean,
   signal: AbortSignal
 ): Promise<{
   closest: TData[];
@@ -27,6 +28,7 @@ export async function getClosest(
       params: {
         longitude: long,
         latitude: lat,
+        isFirst: isFirst.toString(),
         ...dateVal,
       },
       signal,
