@@ -99,20 +99,10 @@ const MapComponent: React.FC<MapComponentProps> = ({
     setItemList(data);
   }, [data]);
   useEffect(() => {
-    if (isHeatmap) {
-      setInitialState({
-        ...initialState,
-        pitch: 40.5,
-        bearing: -27,
-      });
-    } else {
-      setInitialState({
-        ...initialState,
-        pitch: 0,
-        bearing: 0,
-      });
-    }
-  }, [isHeatmap]);
+    setInitialState({
+      ...initialState,
+    });
+  }, []);
   const ambientLight = new AmbientLight({
     color: [255, 255, 255],
     intensity: 1.0,
@@ -158,26 +148,37 @@ const MapComponent: React.FC<MapComponentProps> = ({
         }),
       ];
     return [
-      new HexagonLayer({
-        id: "hexagon-layer",
+      // new HexagonLayer({
+      //   id: "hexagon-layer",
+      //   data: itemList,
+      //   getPosition: (d: any) => [d.SLong, d.SLat],
+      //   getElevationWeight: (d: any) => d.avg_weekly_sales,
+      //   elevationScale: 50, // Adjusts the height of the hexagons
+      //   extruded: true, // Enables the 3D effect
+      //   radius: 1000, // Adjust the radius of each hexagon
+      //   colorRange,
+      //   pickable: true,
+      //   elevationRange: [0, 3000],
+      //   upperPercentile: 100,
+      //   coverage: 1,
+      //   material: {
+      //     ambient: 0.1,
+      //     diffuse: 0.6,
+      //     shininess: 32,
+      //     specularColor: [60, 64, 70],
+      //   },
+      //   // Removed upperPercentile and lowerPercentile to use all the data
+
+      // }),
+      new HeatmapLayer({
+        id: "heatmap-layer",
         data: itemList,
-        getPosition: (d: any) => [d.SLong, d.SLat],
-        getElevationWeight: (d: any) => d.avg_weekly_sales,
-        elevationScale: 50, // Adjusts the height of the hexagons
-        extruded: true, // Enables the 3D effect
-        radius: 1000, // Adjust the radius of each hexagon
-        colorRange,
-        pickable: true,
-        elevationRange: [0, 3000],
-        upperPercentile: 100,
-        coverage: 1,
-        material: {
-          ambient: 0.1,
-          diffuse: 0.6,
-          shininess: 32,
-          specularColor: [60, 64, 70],
-        },
-        // Removed upperPercentile and lowerPercentile to use all the data
+        getPosition: (d) => [d.SLong, d.SLat], // longitude and latitude positions
+        getWeight: (d) => d.avg_weekly_sales, // data to visualize, similar to getElevationWeight
+        radiusPixels: 100, // Adjusts the radius of each heatmap point, change as needed
+        intensity: 1, // Adjust intensity of the heatmap
+        threshold: 0.03, // Minimum density threshold to render a heatmap
+        pickable: true, // Enable picking for interactivity
       }),
     ];
   }, [itemList, isHeatmap]);
@@ -236,6 +237,7 @@ const MapComponent: React.FC<MapComponentProps> = ({
           style={{
             left: selectedItem.x,
             top: selectedItem.y,
+            position: "fixed",
           }}
           className="fixed py-2 -translate-x-[37%] -translate-y-[110%]  px-4 rounded-md bg-slate-500 text-white"
         >

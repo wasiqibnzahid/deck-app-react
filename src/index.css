@@ -10,7 +10,11 @@
 }
 body {
   background-color: #1c1e22 !important;
-  /* overflow: hidden; */
+  overflow: hidden;
+}
+.ant-slider-mark-text {
+  color: white !important;
+  white-space: nowrap;
 }
 input {
   color-scheme: dark;
@@ -18,4 +22,8 @@ input {
 
 .transition-transform {
   transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+}
+
+.small {
+  font-size: 14px !important;
 }

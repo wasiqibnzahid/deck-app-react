@@ -22,6 +22,7 @@ import {
 } from "@choc-ui/chakra-autocomplete";
 import Chart from "./components/Chart";
 import dayjs from "dayjs";
+import DateRangeSlider from "./components/DateSlider";
 
 function haversineDistance(
   lat1: number,
@@ -112,8 +113,17 @@ function hasMovedSignificantly(
   );
   return distance >= thresholdMeters;
 }
+const getDateRange = (): string[] => {
+  const now = dayjs();
+  const dates: string[] = [];
+  for (let i = 12; i >= 0; i -= 3) {
+    dates.push(now.subtract(i, "month").startOf("month").format("YYYY-MM-DD"));
+  }
+  return dates;
+};
 
 export const App = () => {
+  const dateRange = useMemo(() => getDateRange(), []);
   const [isFirst, setIsFirst] = useState(true);
   const [selectedItems, setSelectedItems] = useState<TData[]>([]);
   const [mode, setMode] = useState<"bigquery" | "model" | "id">("bigquery");
@@ -189,8 +199,10 @@ export const App = () => {
     [searchText, coordinates]
   );
   const [dateValue, setDateValue] = useState({
-    start: "2024-01-01",
-    end: "2024-12-30",
+    start: dateRange[0],
+    end: dayjs(dateRange[dateRange.length - 1])
+      .endOf("month")
+      .format("YYYY-MM-DD"),
   });
   const abortControllerRef = useRef(new AbortController());
   const fetchData = useCallback(
@@ -263,6 +275,10 @@ export const App = () => {
   const handleSelect = (param: any) => {
     console.log(param);
   };
+  const [selectedRange, setSelectedRange] = useState({
+    min: 1,
+    max: 12,
+  });
   const [map, setMap] = useState(states[0]?.value);
   const dataToUse = useMemo(() => {
     const map: any = {};
@@ -274,8 +290,8 @@ export const App = () => {
   }, [data, selectedItems]);
   return (
     <div className="flex py-4 px-8 h-screen">
-      <div className="pr-2 w-1/2">
-        <div className="mb-2 flex justify-end items-center gap-2">
+      <div className="pr-2 w-1/2 h-full flex flex-col ">
+        {/* <div className="mb-2 flex justify-end items-center gap-2">
           <div>
             <label className="text-white" htmlFor="start">
               Start
@@ -302,36 +318,53 @@ export const App = () => {
               type="date"
             />
           </div>
-        </div>
-        <MapComponent
-          map={map}
-          onItemClick={onItemClick}
-          data={dataToUse}
-          lat={singleSelectedItem?.SLat || selectedItems?.[0]?.SLat}
-          long={singleSelectedItem?.SLong || selectedItems?.[0]?.SLong}
-          setLocation={(lat, long) => {
-            if (singleSelectedItem) {
-              setCoordinates({ lat, long });
-            } else if (coordinates.lat && coordinates.long) {
-              if (
-                hasMovedSignificantly(
-                  lat,
-                  long,
-                  coordinates.lat,
-                  coordinates.long
-                )
-              ) {
-                if (isFirst) {
-                  setIsFirst(false);
+        </div> */}
+        <div
+          style={{
+            flexGrow: "1",
+          }}
+        >
+          <MapComponent
+            map={map}
+            onItemClick={onItemClick}
+            data={dataToUse}
+            lat={singleSelectedItem?.SLat || selectedItems?.[0]?.SLat}
+            long={singleSelectedItem?.SLong || selectedItems?.[0]?.SLong}
+            setLocation={(lat, long) => {
+              if (singleSelectedItem) {
+                setCoordinates({ lat, long });
+              } else if (coordinates.lat && coordinates.long) {
+                if (
+                  hasMovedSignificantly(
+                    lat,
+                    long,
+                    coordinates.lat,
+                    coordinates.long
+                  )
+                ) {
+                  if (isFirst) {
+                    setIsFirst(false);
+                    setCoordinates({ lat, long });
+                    return;
+                  }
+                  myFn(lat, long);
                   setCoordinates({ lat, long });
-                  return;
                 }
-                myFn(lat, long);
+              } else if (!coordinates.lat && !coordinates.long) {
                 setCoordinates({ lat, long });
               }
-            } else if (!coordinates.lat && !coordinates.long) {
-              setCoordinates({ lat, long });
-            }
+            }}
+          />
+        </div>
+        <DateRangeSlider
+          selectedRange={selectedRange}
+          dateRange={dateRange}
+          setSelectedRange={setSelectedRange}
+          onChange={(start, end) => {
+            setDateValue({
+              start,
+              end,
+            });
           }}
         />
       </div>
@@ -448,8 +481,13 @@ export const App = () => {
             ))}
           </div>
         )}
-        {!loading && singleSelectedItem && (
-          <div>
+        {singleSelectedItem && (
+          <div className="pr-[1rem] max-h-[calc(100%_-_168px)] overflow-y-auto overflow-x-hidden">
+            <div className="text-center">
+              <h3>
+                <b>{singleSelectedItem?.Title}</b>
+              </h3>
+            </div>
             <div
               key={singleSelectedItem.IId}
               className="relative flex w-full items-center justify-center pt-2 px-2 my-2"
@@ -469,6 +507,12 @@ export const App = () => {
                 src={singleSelectedItem.Image}
                 alt={singleSelectedItem.Image}
               />
+            </div>
+            <div className="ml-3 mb-3">
+              <h3>
+                <b>Description:</b>
+              </h3>
+              <span className="small">{singleSelectedItem?.Description}</span>
             </div>
             <Chart data={singleSelectedItem?.forecast_records || []} />
           </div>
