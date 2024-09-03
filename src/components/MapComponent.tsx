@@ -46,6 +46,7 @@ interface MapComponentProps {
   setLocation?: (lat: number, long: number) => void;
   searchText?: string;
   map: number[];
+  isHeatmap: boolean;
 }
 const MapComponent: React.FC<MapComponentProps> = ({
   onItemClick = () => {},
@@ -54,8 +55,8 @@ const MapComponent: React.FC<MapComponentProps> = ({
   long,
   map,
   setLocation,
+  isHeatmap = false,
 }) => {
-  const [isHeatmap, setIsHeatmap] = useState(false);
   const [itemList, setItemList] = useState<TData[]>(data);
   const [selectedItem, setSelectedItem] = useState<
     { x: number; y: number } & TData
@@ -70,6 +71,7 @@ const MapComponent: React.FC<MapComponentProps> = ({
     setLocation(i.latitude, i.longitude);
   }
   const handleClick = ({ object = null }: { object?: TData }) => {
+    console.log(itemList);
     if (object) {
       onItemClick(object);
       const itemIndex = itemList.findIndex(
@@ -80,9 +82,9 @@ const MapComponent: React.FC<MapComponentProps> = ({
       );
       const newList = [...itemList];
       if (object.selected) {
-        newList[itemIndex].color = defaultColor;
+        // newList[itemIndex].color = defaultColor;
       } else {
-        newList[itemIndex].color = selectedColor;
+        // newList[itemIndex].color = selectedColor;
       }
       newList[itemIndex].selected = !newList[itemIndex].selected;
       setItemList(newList);
@@ -135,7 +137,7 @@ const MapComponent: React.FC<MapComponentProps> = ({
             return [d.SLong, d.SLat];
           },
           getRadius: (d) => 5000,
-          getFillColor: (d) => (d.selected ? selectedColor : defaultColor),
+          getFillColor: (d) => d.color,
           onClick: handleClick,
           onHover: (e) => {
             if (e.object) {
@@ -147,6 +149,12 @@ const MapComponent: React.FC<MapComponentProps> = ({
           pickable: true,
         }),
       ];
+    const maxVal = Math.max(...itemList.map((item) => item.avg_weekly_sales));
+    
+    const newItemList = itemList.map((item) => ({
+      ...item,
+      avg_weekly_sales: maxVal - item.avg_weekly_sales,
+    }));
     return [
       // new HexagonLayer({
       //   id: "hexagon-layer",
@@ -170,12 +178,13 @@ const MapComponent: React.FC<MapComponentProps> = ({
       //   // Removed upperPercentile and lowerPercentile to use all the data
 
       // }),
+
       new HeatmapLayer({
         id: "heatmap-layer",
-        data: itemList,
+        data: newItemList,
         getPosition: (d) => [d.SLong, d.SLat], // longitude and latitude positions
         getWeight: (d) => d.avg_weekly_sales, // data to visualize, similar to getElevationWeight
-        radiusPixels: 100, // Adjusts the radius of each heatmap point, change as needed
+        radiusPixels: 20, // Adjusts the radius of each heatmap point, change as needed
         intensity: 1, // Adjust intensity of the heatmap
         threshold: 0.03, // Minimum density threshold to render a heatmap
         pickable: true, // Enable picking for interactivity
@@ -195,15 +204,6 @@ const MapComponent: React.FC<MapComponentProps> = ({
         position: "relative",
       }}
     >
-      <div className="flex mb-2 justify-end gap-2 items-center px-2">
-        <Switch
-          colorScheme="purple"
-          isChecked={isHeatmap}
-          onChange={(e) => setIsHeatmap(e.target.checked)}
-          id="change-heatmap"
-        />
-        <label>Show Heatmap</label>
-      </div>
       <div
         style={{
           height: "calc(100% - 30px)",

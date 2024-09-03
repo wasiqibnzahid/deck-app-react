@@ -11,8 +11,8 @@ import {
   ModalContent,
   ModalOverlay,
   Select,
+  Switch,
 } from "@chakra-ui/react";
-import { DatePicker } from "antd";
 import { CustomSelect } from "./components/CustomSelect";
 import {
   AutoComplete,
@@ -23,6 +23,17 @@ import {
 import Chart from "./components/Chart";
 import dayjs from "dayjs";
 import DateRangeSlider from "./components/DateSlider";
+import axios from "axios";
+import { Button } from "antd";
+
+function isNumeric(str: string) {
+  return /^[0-9]+$/.test(str);
+}
+
+function isStrictlyAlphanumeric(str: string) {
+  // Check if the string contains at least one letter and one digit
+  return /^(?=.*[a-zA-Z])(?=.*[0-9])[a-zA-Z0-9]+$/.test(str);
+}
 
 function haversineDistance(
   lat1: number,
@@ -126,7 +137,9 @@ export const App = () => {
   const dateRange = useMemo(() => getDateRange(), []);
   const [isFirst, setIsFirst] = useState(true);
   const [selectedItems, setSelectedItems] = useState<TData[]>([]);
-  const [mode, setMode] = useState<"bigquery" | "model" | "id">("bigquery");
+  const [mode, setMode] = useState<"bigquery" | "model" | "id" | "automatic">(
+    "automatic"
+  );
   const [searchText, setSearchText] = useState("");
   const [data, setData] = useState<TData[]>([]);
   const [loading, setLoading] = useState(true);
@@ -145,7 +158,6 @@ export const App = () => {
     ) {
       setSingleSelectedItem(newItem);
       setSelectedItems(data.filter((item) => item.IId === newItem.IId));
-      setMode("id");
       setSearchText(newItem.IId.toString());
     }
     // const itemIndex = selectedItems.findIndex(
@@ -198,6 +210,7 @@ export const App = () => {
     },
     [searchText, coordinates]
   );
+  const [isHeatmap, setIsHeatmap] = useState(false);
   const [dateValue, setDateValue] = useState({
     start: dateRange[0],
     end: dayjs(dateRange[dateRange.length - 1])
@@ -207,6 +220,15 @@ export const App = () => {
   const abortControllerRef = useRef(new AbortController());
   const fetchData = useCallback(
     async function () {
+      let innerMode: any = mode.trim();
+      if (innerMode === "automatic") {
+        if (isNumeric(searchText) || isStrictlyAlphanumeric(searchText)) {
+          innerMode = "id";
+        } else {
+          innerMode = "bigquery";
+        }
+      }
+
       setLoading(true);
       let apiRes: TData[] = [];
       let all: TData[] = [];
@@ -215,11 +237,14 @@ export const App = () => {
       if (searchText) {
         apiRes = await searchApi(
           searchText,
-          mode,
+          innerMode,
           coordinates,
           dateValue,
           abortControllerRef.current.signal
         ).catch((e) => {
+          if (!axios.isCancel(e)) {
+            setLoading(false);
+          }
           isError = true;
           return [];
         });
@@ -236,10 +261,13 @@ export const App = () => {
             all = data.all.map((item) =>
               closestIds.includes(item.IId) ? { ...item, selected: true } : item
             );
-            if (all.length) setData(all);
+            setData(all);
             return data.closest;
           })
           .catch((e) => {
+            if (!axios.isCancel(e)) {
+              setLoading(false);
+            }
             isError = true;
             return [];
           });
@@ -247,7 +275,7 @@ export const App = () => {
       if (isError) return;
       setSelectedItems([...apiRes]);
       console.log("HERE", mode, apiRes?.[0]);
-      if (mode === "id") {
+      if (innerMode === "id") {
         setSingleSelectedItem(apiRes?.[0] || null);
       }
       // if (all.length) {
@@ -280,6 +308,7 @@ export const App = () => {
     max: 12,
   });
   const [map, setMap] = useState(states[0]?.value);
+  const [forecastModel, setForecastModel] = useState("automatic a");
   const dataToUse = useMemo(() => {
     const map: any = {};
     selectedItems.forEach((item) => (map[item.IId] = true));
@@ -319,12 +348,62 @@ export const App = () => {
             />
           </div>
         </div> */}
+        <div className="flex justify-center items-center mb-2">
+          <div className="w-[300px]">
+            <CustomSelect
+              color="white"
+              id="mode"
+              // className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+              value={mode}
+              onChange={(e: any) => {
+                setMode(e.target.value);
+              }}
+            >
+              <option value="automatic">Automatic</option>
+              <option value="model">Embedding Model: OpenClip</option>
+              <option value="model   ">Embedding Model: SBERT</option>
+            </CustomSelect>
+          </div>
+          <div className="ml-auto flex justify-end gap-2 items-center px-2">
+            <Switch
+              colorScheme="purple"
+              isChecked={isHeatmap}
+              onChange={(e) => setIsHeatmap(e.target.checked)}
+              id="change-heatmap"
+            />
+            <label>Show Heatmap</label>
+          </div>
+        </div>
+        <div className="w-[300px] mb-2">
+          <CustomSelect
+            id="states"
+            // className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+            // className="text-white"
+            color="white"
+            value={JSON.stringify(map)}
+            onChange={(e) => {
+              const val = JSON.parse(e.target.value);
+              setMap(val);
+              setSingleSelectedItem(null);
+              if (mode === "id") {
+                setMode("bigquery");
+              }
+            }}
+          >
+            {states.map((state) => (
+              <option key={state.name} value={JSON.stringify(state.value)}>
+                {state.name}
+              </option>
+            ))}
+          </CustomSelect>
+        </div>
         <div
           style={{
             flexGrow: "1",
           }}
         >
           <MapComponent
+            isHeatmap={isHeatmap}
             map={map}
             onItemClick={onItemClick}
             data={dataToUse}
@@ -365,49 +444,12 @@ export const App = () => {
               start,
               end,
             });
+            setSearchText("");
           }}
         />
       </div>
 
       <div className="w-1/2 pl-2">
-        <div className="w-[300px] ml-auto mb-2">
-          <CustomSelect
-            color="white"
-            id="mode"
-            // className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-            value={mode}
-            onChange={(e: any) => {
-              setMode(e.target.value);
-            }}
-          >
-            <option value="bigquery">BigQuery</option>
-            <option value="model">model</option>
-            <option value="id">id</option>
-          </CustomSelect>
-        </div>
-        <div className="w-[300px] ml-auto">
-          <CustomSelect
-            id="states"
-            // className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-            // className="text-white"
-            color="white"
-            value={JSON.stringify(map)}
-            onChange={(e) => {
-              const val = JSON.parse(e.target.value);
-              setMap(val);
-              setSingleSelectedItem(null);
-              if (mode === "id") {
-                setMode("bigquery");
-              }
-            }}
-          >
-            {states.map((state) => (
-              <option key={state.name} value={JSON.stringify(state.value)}>
-                {state.name}
-              </option>
-            ))}
-          </CustomSelect>
-        </div>
         {/* <Input
           value={searchText}
           onChange={(e) => setSearchText(e.target.value)}
@@ -462,7 +504,7 @@ export const App = () => {
           </div>
         )}
         {!loading && !singleSelectedItem && (
-          <div className="flex max-w-100% flex-wrap max-h-[calc(100%_-_168px)] overflow-y-auto">
+          <div className="flex max-w-100% flex-wrap max-h-[calc(100%_-_90px)] mt-[1.05rem] overflow-y-auto">
             {selectedItems.map((item) => (
               <div
                 key={item.IId}
@@ -482,7 +524,7 @@ export const App = () => {
           </div>
         )}
         {singleSelectedItem && (
-          <div className="pr-[1rem] max-h-[calc(100%_-_168px)] overflow-y-auto overflow-x-hidden">
+          <div className="pr-[1rem] max-h-[calc(100%_-_90px)] overflow-y-auto overflow-x-hidden">
             <div className="text-center">
               <h3>
                 <b>{singleSelectedItem?.Title}</b>
@@ -513,6 +555,21 @@ export const App = () => {
                 <b>Description:</b>
               </h3>
               <span className="small">{singleSelectedItem?.Description}</span>
+            </div>
+            <div className="w-[300px] ml-auto mb-2">
+              <CustomSelect
+                color="white"
+                id="forecasting-model"
+                value={forecastModel}
+                onChange={(e) => setForecastModel(e.target.value)}
+              >
+                <option value="automatic a" disabled hidden>
+                  Forecasting Model
+                </option>
+                <option value="automatic">Naive</option>
+                <option value="model">MHRNN</option>
+                <option value="model   ">MLP</option>
+              </CustomSelect>
             </div>
             <Chart data={singleSelectedItem?.forecast_records || []} />
           </div>
