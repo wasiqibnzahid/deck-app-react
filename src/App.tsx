@@ -219,7 +219,7 @@ export const App = () => {
   });
   const abortControllerRef = useRef(new AbortController());
   const fetchData = useCallback(
-    async function () {
+    async function (date?: typeof dateValue) {
       let innerMode: any = mode.trim();
       if (innerMode === "automatic") {
         if (isNumeric(searchText) || isStrictlyAlphanumeric(searchText)) {
@@ -239,7 +239,7 @@ export const App = () => {
           searchText,
           innerMode,
           coordinates,
-          dateValue,
+          date || dateValue,
           abortControllerRef.current.signal
         ).catch((e) => {
           if (!axios.isCancel(e)) {
@@ -252,7 +252,7 @@ export const App = () => {
         apiRes = await getClosest(
           coordinates.lat || 36.7849143994791,
           coordinates.long || -92.1959309706847,
-          dateValue,
+          date || dateValue,
           isFirst,
           abortControllerRef.current.signal
         )
@@ -308,7 +308,7 @@ export const App = () => {
     max: 12,
   });
   const [map, setMap] = useState(states[0]?.value);
-  const [forecastModel, setForecastModel] = useState("automatic a");
+  const [forecastModel, setForecastModel] = useState("Naive");
   const dataToUse = useMemo(() => {
     const map: any = {};
     selectedItems.forEach((item) => (map[item.IId] = true));
@@ -318,9 +318,99 @@ export const App = () => {
     }));
   }, [data, selectedItems]);
   return (
-    <div className="flex py-4 px-8 h-screen">
-      <div className="pr-2 w-1/2 h-full flex flex-col ">
-        {/* <div className="mb-2 flex justify-end items-center gap-2">
+    <div className="flex h-screen">
+      <div className="pt-12 px-4 w-1/4 h-full flex flex-col ">
+        <h1 className="mb-6">Dashboard</h1>
+        <div className="flex justify-end gap-2 items-center px-2">
+          <label>Show Heatmap</label>
+          <Switch
+            colorScheme="purple"
+            isChecked={isHeatmap}
+            onChange={(e) => setIsHeatmap(e.target.checked)}
+            id="change-heatmap"
+          />
+        </div>
+
+        <div className="mb-6">
+          <FormLabel>Search</FormLabel>
+
+          <AutoComplete
+            openOnFocus
+            value={searchText}
+            onChange={(e) => {
+              // console.log("ZE E", /e);
+              setSearchText(e);
+            }}
+          >
+            <AutoCompleteInput
+              onChange={(e) => setSearchText(e.target.value)}
+              color="white"
+            />
+            <AutoCompleteList color="red">
+              {data.map((item, cid) => (
+                <AutoCompleteItem
+                  key={`option-${cid}`}
+                  value={item.Title}
+                  textTransform="capitalize"
+                  color="black"
+                >
+                  {item.Title}
+                </AutoCompleteItem>
+              ))}
+            </AutoCompleteList>
+          </AutoComplete>
+        </div>
+
+        {/* <div className="flex justify-center items-center mb-2"> */}
+        <div className="w-[300px] mb-2">
+          <FormLabel>Search Method</FormLabel>
+          <CustomSelect
+            color="white"
+            id="mode"
+            // className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+            value={mode}
+            onChange={(e: any) => {
+              setMode(e.target.value);
+            }}
+          >
+            <option value="automatic">Automatic</option>
+            <option value="model">Embedding Model: OpenClip</option>
+            <option value="model   ">Embedding Model: SBERT</option>
+          </CustomSelect>
+        </div>
+        <p
+          className="mb-6"
+          style={{
+            fontSize: "12px",
+          }}
+        >You can select basic search or use trained AI models to optimize your searches</p>
+        <div className="w-[300px] mb-6">
+          <FormLabel>Region</FormLabel>
+
+          <CustomSelect
+            id="states"
+            // className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+            // className="text-white"
+            color="white"
+            value={JSON.stringify(map)}
+            onChange={(e) => {
+              const val = JSON.parse(e.target.value);
+              setMap(val);
+              setSingleSelectedItem(null);
+              if (mode === "id") {
+                setMode("bigquery");
+              }
+            }}
+          >
+            {states.map((state) => (
+              <option key={state.name} value={JSON.stringify(state.value)}>
+                {state.name}
+              </option>
+            ))}
+          </CustomSelect>
+        </div>
+
+        <div className="mb-2 flex justify-start items-center gap-2">
           <div>
             <label className="text-white" htmlFor="start">
               Start
@@ -347,59 +437,19 @@ export const App = () => {
               type="date"
             />
           </div>
-        </div> */}
-        <div className="flex justify-center items-center mb-2">
-          <div className="w-[300px]">
-            <CustomSelect
-              color="white"
-              id="mode"
-              // className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-              value={mode}
-              onChange={(e: any) => {
-                setMode(e.target.value);
-              }}
-            >
-              <option value="automatic">Automatic</option>
-              <option value="model">Embedding Model: OpenClip</option>
-              <option value="model   ">Embedding Model: SBERT</option>
-            </CustomSelect>
-          </div>
-          <div className="ml-auto flex justify-end gap-2 items-center px-2">
-            <Switch
-              colorScheme="purple"
-              isChecked={isHeatmap}
-              onChange={(e) => setIsHeatmap(e.target.checked)}
-              id="change-heatmap"
-            />
-            <label>Show Heatmap</label>
-          </div>
         </div>
-        <div className="w-[300px] mb-2">
-          <CustomSelect
-            id="states"
-            // className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-            // className="text-white"
-            color="white"
-            value={JSON.stringify(map)}
-            onChange={(e) => {
-              const val = JSON.parse(e.target.value);
-              setMap(val);
-              setSingleSelectedItem(null);
-              if (mode === "id") {
-                setMode("bigquery");
-              }
-            }}
-          >
-            {states.map((state) => (
-              <option key={state.name} value={JSON.stringify(state.value)}>
-                {state.name}
-              </option>
-            ))}
-          </CustomSelect>
-        </div>
+        <p className="" style={{ fontSize: "12px" }}>
+          You can select dates here to view data in a specific range. You can
+          also use the slider under the map if you want to view data within last
+          year
+        </p>
+      </div>
+
+      <div className="w-[calc(75%_-_10px)] max-h-screen overflow-y-auto">
         <div
           style={{
             flexGrow: "1",
+            height: "70vh",
           }}
         >
           <MapComponent
@@ -435,21 +485,25 @@ export const App = () => {
             }}
           />
         </div>
-        <DateRangeSlider
-          selectedRange={selectedRange}
-          dateRange={dateRange}
-          setSelectedRange={setSelectedRange}
-          onChange={(start, end) => {
-            setDateValue({
-              start,
-              end,
-            });
-            setSearchText("");
-          }}
-        />
-      </div>
-
-      <div className="w-1/2 pl-2">
+        <div className="px-4">
+          <DateRangeSlider
+            selectedRange={selectedRange}
+            dateRange={dateRange}
+            setSelectedRange={setSelectedRange}
+            onChange={(start, end) => {
+              // setDateValue({
+              //   start,
+              //   end,
+              // });
+              // setSearchText("");
+              if (abortControllerRef.current) {
+                abortControllerRef.current?.abort?.();
+              }
+              abortControllerRef.current = new AbortController();
+              fetchData({ start, end });
+            }}
+          />
+        </div>
         {/* <Input
           value={searchText}
           onChange={(e) => setSearchText(e.target.value)}
@@ -457,38 +511,9 @@ export const App = () => {
           type="text"
           placeholder="Search"
         /> */}
-        <div className="mb-2 px-2 ml-auto">
-          <FormLabel>Search</FormLabel>
-
-          <AutoComplete
-            openOnFocus
-            value={searchText}
-            onChange={(e) => {
-              // console.log("ZE E", /e);
-              setSearchText(e);
-            }}
-          >
-            <AutoCompleteInput
-              onChange={(e) => setSearchText(e.target.value)}
-              color="white"
-            />
-            <AutoCompleteList color="red">
-              {data.map((item, cid) => (
-                <AutoCompleteItem
-                  key={`option-${cid}`}
-                  value={item.Title}
-                  textTransform="capitalize"
-                  color="black"
-                >
-                  {item.Title}
-                </AutoCompleteItem>
-              ))}
-            </AutoCompleteList>
-          </AutoComplete>
-        </div>
 
         {loading && (
-          <div className="flex justify-center items-center h-full">
+          <div className="flex justify-center items-start pt-4">
             <div
               style={{
                 border: "solid",
@@ -504,11 +529,11 @@ export const App = () => {
           </div>
         )}
         {!loading && !singleSelectedItem && (
-          <div className="flex max-w-100% flex-wrap max-h-[calc(100%_-_90px)] mt-[1.05rem] overflow-y-auto">
+          <div className="flex max-w-100% flex-wrap  mt-[1.05rem] ">
             {selectedItems.map((item) => (
               <div
                 key={item.IId}
-                className="flex w-[20%] align-center px-2 my-2"
+                className="flex w-[16.6%] align-center px-2 my-2"
               >
                 <img
                   onClick={() => {
@@ -524,7 +549,7 @@ export const App = () => {
           </div>
         )}
         {singleSelectedItem && (
-          <div className="pr-[1rem] max-h-[calc(100%_-_90px)] overflow-y-auto overflow-x-hidden">
+          <div className="pr-[1rem] ">
             <div className="text-center">
               <h3>
                 <b>{singleSelectedItem?.Title}</b>
@@ -557,18 +582,16 @@ export const App = () => {
               <span className="small">{singleSelectedItem?.Description}</span>
             </div>
             <div className="w-[300px] ml-auto mb-2">
+              <FormLabel>Forecasting Model</FormLabel>
               <CustomSelect
                 color="white"
                 id="forecasting-model"
                 value={forecastModel}
                 onChange={(e) => setForecastModel(e.target.value)}
               >
-                <option value="automatic a" disabled hidden>
-                  Forecasting Model
-                </option>
-                <option value="automatic">Naive</option>
-                <option value="model">MHRNN</option>
-                <option value="model   ">MLP</option>
+                <option value="Naive">Naive</option>
+                <option value="MHRNN">MHRNN</option>
+                <option value="MLP">MLP</option>
               </CustomSelect>
             </div>
             <Chart data={singleSelectedItem?.forecast_records || []} />

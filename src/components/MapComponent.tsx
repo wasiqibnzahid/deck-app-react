@@ -8,6 +8,8 @@ import { BrushingExtension } from "@deck.gl/extensions";
 import { TData } from "../types/types";
 import { AmbientLight, PointLight, LightingEffect } from "@deck.gl/core";
 import { Checkbox, Radio, Switch } from "@chakra-ui/react";
+import { colorHelper } from "../helper/color-helper";
+import LegendBar from "./legend-bar";
 
 /**
  * @type {TData[]}
@@ -126,7 +128,11 @@ const MapComponent: React.FC<MapComponentProps> = ({
     pointLight1,
     pointLight2,
   });
-
+  const [minVal, maxVal] = useMemo(() => {
+    const maxVal = Math.max(...itemList.map((item) => item.avg_weekly_sales));
+    const minVal = Math.min(...itemList.map((item) => item.avg_weekly_sales));
+    return [minVal, maxVal];
+  }, [itemList]);
   const layers = useMemo(() => {
     if (!isHeatmap)
       return [
@@ -136,8 +142,9 @@ const MapComponent: React.FC<MapComponentProps> = ({
           getPosition: (d) => {
             return [d.SLong, d.SLat];
           },
-          getRadius: (d) => 5000,
-          getFillColor: (d) => d.color,
+          getRadius: (d) => 2500,
+          getFillColor: (d: TData) =>
+            colorHelper(d.avg_weekly_sales, minVal, maxVal, 180),
           onClick: handleClick,
           onHover: (e) => {
             if (e.object) {
@@ -149,8 +156,7 @@ const MapComponent: React.FC<MapComponentProps> = ({
           pickable: true,
         }),
       ];
-    const maxVal = Math.max(...itemList.map((item) => item.avg_weekly_sales));
-    
+
     const newItemList = itemList.map((item) => ({
       ...item,
       avg_weekly_sales: maxVal - item.avg_weekly_sales,
@@ -204,6 +210,17 @@ const MapComponent: React.FC<MapComponentProps> = ({
         position: "relative",
       }}
     >
+      {itemList?.length > 0 && !isHeatmap && (
+        <div className="absolute z-10 right-[10px] top-[80px]">
+          <LegendBar
+            height={400}
+            width={50}
+            min={minVal}
+            max={maxVal}
+            numSegments={10}
+          />
+        </div>
+      )}
       <div
         style={{
           height: "calc(100% - 30px)",
@@ -235,8 +252,8 @@ const MapComponent: React.FC<MapComponentProps> = ({
       {selectedItem && (
         <div
           style={{
-            left: selectedItem.x,
-            top: selectedItem.y,
+            left: selectedItem.x + window.innerWidth * 0.235,
+            top: selectedItem.y - 10,
             position: "fixed",
           }}
           className="fixed py-2 -translate-x-[37%] -translate-y-[110%]  px-4 rounded-md bg-slate-500 text-white"

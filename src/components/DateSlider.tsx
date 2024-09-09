@@ -58,10 +58,6 @@ const DateRangeSlider: React.FC<Props> = ({
           12: formatDate(dateRange[4]),
         }}
       />
-      <div className="text-center">
-        {dateRange[Math.ceil((selectedRange.min - 1) / 3)]} to{" "}
-        {getEnd(dateRange[Math.ceil((selectedRange.max - 1) / 3)])}
-      </div>
     </div>
   );
 };
