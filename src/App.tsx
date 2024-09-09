@@ -383,7 +383,10 @@ export const App = () => {
           style={{
             fontSize: "12px",
           }}
-        >You can select basic search or use trained AI models to optimize your searches</p>
+        >
+          You can select basic search or use trained AI models to optimize your
+          searches
+        </p>
         <div className="w-[300px] mb-6">
           <FormLabel>Region</FormLabel>
 
@@ -450,6 +453,7 @@ export const App = () => {
           style={{
             flexGrow: "1",
             height: "70vh",
+            minHeight: "660px",
           }}
         >
           <MapComponent
