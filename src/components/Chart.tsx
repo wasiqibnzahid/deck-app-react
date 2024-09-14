@@ -81,7 +81,7 @@ export const Chart: React.FC<Props> = ({ data = [] }) => {
         colors: ["#FFFFFF"], // White color for data labels
       },
     },
-    colors: ["#FF4560", "#00E396"], // Colors for lines
+    colors: ["#FF4560", "#f7c300"], // Colors for lines
   };
 
   function setMinVal(val: "1year" | "3months" | "1month" | "1week") {

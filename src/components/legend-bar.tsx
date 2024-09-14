@@ -38,7 +38,10 @@ const LegendBar: React.FC<LegendBarProps> = ({
       }}
     >
       {colors.map(({ color, val }, index) => (
-        <div className="flex flex-nowrap justify-end items-center gap-2">
+        <div
+          key={JSON.stringify(color) + index}
+          className="flex flex-nowrap justify-end items-center gap-2"
+        >
           <div
             style={{
               fontSize: "12px",

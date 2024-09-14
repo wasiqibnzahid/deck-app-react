@@ -7,10 +7,7 @@ import {
   Input,
   Modal,
   ModalBody,
-  ModalCloseButton,
-  ModalContent,
   ModalOverlay,
-  Select,
   Switch,
 } from "@chakra-ui/react";
 import { CustomSelect } from "./components/CustomSelect";
@@ -24,7 +21,6 @@ import Chart from "./components/Chart";
 import dayjs from "dayjs";
 import DateRangeSlider from "./components/DateSlider";
 import axios from "axios";
-import { Button } from "antd";
 
 function isNumeric(str: string) {
   return /^[0-9]+$/.test(str);
@@ -160,16 +156,13 @@ export const App = () => {
       setSelectedItems(data.filter((item) => item.IId === newItem.IId));
       setSearchText(newItem.IId.toString());
     }
-    // const itemIndex = selectedItems.findIndex(
-    //   (item) => item.IId === newItem.IId
-    // );
-    // const newList = [...selectedItems];
-    // if (itemIndex === -1) {
-    //   newList.push(newItem);
-    // } else {
-    //   newList.splice(itemIndex, 1);
-    // }
   };
+  const [dateValue, setDateValue] = useState({
+    start: dateRange[0],
+    end: dayjs(dateRange[dateRange.length - 1])
+      .endOf("month")
+      .format("YYYY-MM-DD"),
+  });
 
   const myFn = useCallback(
     async (lat: number, long: number) => {
@@ -208,15 +201,9 @@ export const App = () => {
         setSelectedItems(res);
       }
     },
-    [searchText, coordinates]
+    [searchText, isFirst, dateValue, mode]
   );
   const [isHeatmap, setIsHeatmap] = useState(false);
-  const [dateValue, setDateValue] = useState({
-    start: dateRange[0],
-    end: dayjs(dateRange[dateRange.length - 1])
-      .endOf("month")
-      .format("YYYY-MM-DD"),
-  });
   const abortControllerRef = useRef(new AbortController());
   const fetchData = useCallback(
     async function (date?: typeof dateValue) {
@@ -300,13 +287,22 @@ export const App = () => {
     setSearchText("");
     setMode("bigquery");
   }
-  const handleSelect = (param: any) => {
-    console.log(param);
-  };
+
   const [selectedRange, setSelectedRange] = useState({
     min: 1,
     max: 12,
   });
+  // const divRef = useRef<HTMLDivElement>(null);
+  const handleScrollToBottom = () => {
+    const div = document.getElementById("scroll-div-custom");
+    if (div) {
+      div.scrollTo({
+        top: 100000000000, // Scroll to the bottom
+        behavior: "smooth", // Optional for smooth scrolling
+      });
+    }
+  };
+
   const [map, setMap] = useState(states[0]?.value);
   const [forecastModel, setForecastModel] = useState("Naive");
   const dataToUse = useMemo(() => {
@@ -319,7 +315,7 @@ export const App = () => {
   }, [data, selectedItems]);
   return (
     <div className="flex h-screen">
-      <div className="pt-12 px-4 w-1/4 h-full flex flex-col ">
+      <div className="pt-12 px-4 w-1/5 h-full flex flex-col ">
         <h1 className="mb-6">Dashboard</h1>
         <div className="flex justify-end gap-2 items-center px-2">
           <label>Show Heatmap</label>
@@ -446,9 +442,29 @@ export const App = () => {
           also use the slider under the map if you want to view data within last
           year
         </p>
+        <span
+          onClick={() => {
+            setSearchText("");
+            setMode("automatic");
+            setMap(states?.[0]?.value);
+            setDateValue({
+              start: dateRange[0],
+              end: dayjs(dateRange[dateRange.length - 1])
+                .endOf("month")
+                .format("YYYY-MM-DD"),
+            });
+            setSingleSelectedItem(null);
+          }}
+          className="w-[fit-content] mt-auto mb-12 cursor-pointer px-2 py-2 rounded-md bg-[#131416] "
+        >
+          Reset Filters
+        </span>
       </div>
 
-      <div className="w-[calc(75%_-_10px)] max-h-screen overflow-y-auto">
+      <div
+        className="w-[calc(80%_-_10px)] max-h-screen overflow-y-auto"
+        id="scroll-div-custom"
+      >
         <div
           style={{
             flexGrow: "1",
@@ -508,13 +524,6 @@ export const App = () => {
             }}
           />
         </div>
-        {/* <Input
-          value={searchText}
-          onChange={(e) => setSearchText(e.target.value)}
-          className="block my-2 mx-auto shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-          type="text"
-          placeholder="Search"
-        /> */}
 
         {loading && (
           <div className="flex justify-center items-start pt-4">
@@ -537,7 +546,7 @@ export const App = () => {
             {selectedItems.map((item) => (
               <div
                 key={item.IId}
-                className="flex w-[16.6%] align-center px-2 my-2"
+                className="flex w-[10%] align-center px-2 my-2"
               >
                 <img
                   onClick={() => {
@@ -563,14 +572,22 @@ export const App = () => {
               key={singleSelectedItem.IId}
               className="relative flex w-full items-center justify-center pt-2 px-2 my-2"
             >
-              <div
-                onClick={clear}
-                className="absolute right-2 top-2 px-[10px] pb-[5px] rounded-md text-lg bg-[#131416]"
-                style={{
-                  cursor: "pointer",
-                }}
-              >
-                x
+              <div className="absolute right-2 top-2 flex justify-end items-center gap-2">
+                <div
+                  className="cursor-pointer px-[10px] py-[3px] text-[12px] rounded-md text-lg bg-[#131416]"
+                  onClick={handleScrollToBottom}
+                >
+                  View Forecast
+                </div>
+                <div
+                  onClick={clear}
+                  className="px-[10px] pb-[5px] rounded-md text-lg bg-[#131416]"
+                  style={{
+                    cursor: "pointer",
+                  }}
+                >
+                  x
+                </div>
               </div>
               <img
                 onClick={() => setShowImg(true)}

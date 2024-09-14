@@ -1,13 +1,11 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import "mapbox-gl/dist/mapbox-gl.css";
-import { Color, HeatmapLayer, HexagonLayer, ScatterplotLayer } from "deck.gl";
+import { Color, HeatmapLayer, ScatterplotLayer } from "deck.gl";
 import DeckGL from "@deck.gl/react";
 import { Map } from "react-map-gl";
 import { MapView } from "deck.gl";
-import { BrushingExtension } from "@deck.gl/extensions";
 import { TData } from "../types/types";
 import { AmbientLight, PointLight, LightingEffect } from "@deck.gl/core";
-import { Checkbox, Radio, Switch } from "@chakra-ui/react";
 import { colorHelper } from "../helper/color-helper";
 import LegendBar from "./legend-bar";
 
@@ -16,15 +14,11 @@ import LegendBar from "./legend-bar";
  */
 
 const INITIAL_VIEW_STATE = {
-  zoom: 7,
+  zoom: 3.5,
   pitch: 0,
   bearing: 0,
 };
-const HEATMAP_INITIAL_VIEW_STATE = {
-  zoom: 7,
-  pitch: 40.5,
-  bearing: -27,
-};
+
 export const colorRange: Color[] = [
   [1, 152, 189],
   [73, 227, 206],
@@ -36,9 +30,6 @@ export const colorRange: Color[] = [
 
 const mapboxToken =
   "pk.eyJ1IjoidWNmLW1hcGJveCIsImEiOiJjbDBiYzlveHgwdnF0M2NtZzUzZWZuNWZ4In0.l9J8ptz3MKwaU9I4PtCcig";
-const defaultColor: any = [169, 169, 169];
-
-const selectedColor: any = [57, 117, 206];
 
 interface MapComponentProps {
   onItemClick?: (item: TData) => void;
@@ -243,7 +234,7 @@ const MapComponent: React.FC<MapComponentProps> = ({
               style={{}}
               mapboxAccessToken={mapboxToken}
               // mapStyle="mapbox://styles/mapbox/dark-v9"
-              mapStyle="https://basemaps.cartocdn.com/gl/dark-matter-nolabels-gl-style/style.json"
+              mapStyle="https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json"
             />
           </MapView>
         </DeckGL>
