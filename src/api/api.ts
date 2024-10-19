@@ -1,7 +1,7 @@
 import axios from "axios";
 import { TData } from "../types/types";
 export const getRoutes = () => {
-  const baseUrl = process.env.BACKEND_BASE_URL;
+  const baseUrl = process.env.REACT_APP_BACKEND_BASE_URL;
   return {
     closest: `${baseUrl}/closest-records/`,
     search: `${baseUrl}/search-description`,

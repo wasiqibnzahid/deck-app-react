@@ -260,6 +260,7 @@ export const App = () => {
           });
       }
       if (isError) return;
+      console.log("REDA", apiRes)
       setSelectedItems([...apiRes]);
       console.log("HERE", mode, apiRes?.[0]);
       if (innerMode === "id") {
