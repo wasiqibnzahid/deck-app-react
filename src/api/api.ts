@@ -1,7 +1,7 @@
 import axios from "axios";
 import { TData } from "../types/types";
 export const getRoutes = () => {
-  const baseUrl = "http://127.0.0.1:8000";
+  const baseUrl = process.env.BACKEND_BASE_URL;
   return {
     closest: `${baseUrl}/closest-records/`,
     search: `${baseUrl}/search-description`,
