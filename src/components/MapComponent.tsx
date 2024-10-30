@@ -202,9 +202,9 @@ const MapComponent: React.FC<MapComponentProps> = ({
       }}
     >
       {itemList?.length > 0 && !isHeatmap && (
-        <div className="absolute z-10 right-[10px] top-[80px]">
+        <div className="absolute z-10 left-1/2 -translate-x-1/2 bottom-[60px] w-[80%] ">
           <LegendBar
-            height={400}
+            height={50}
             width={50}
             min={minVal}
             max={maxVal}

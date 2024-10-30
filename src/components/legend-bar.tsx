@@ -13,10 +13,7 @@ const LegendBar: React.FC<LegendBarProps> = ({
   min,
   max,
   numSegments,
-  height,
-  width,
 }) => {
-  const segmentHeight = height / numSegments; // Height of each segment
 
   // Generate color segments
   const roundToNearestHundred = (value: number): number => {
@@ -32,15 +29,14 @@ const LegendBar: React.FC<LegendBarProps> = ({
   return (
     <div
       style={{
-        height,
+        height: "52px",
         display: "flex",
-        flexDirection: "column",
       }}
     >
       {colors.map(({ color, val }, index) => (
         <div
           key={JSON.stringify(color) + index}
-          className="flex flex-nowrap justify-end items-center gap-2"
+          className="flex flex-nowrap justify-end items-center gap-2 flex-col flex-1"
         >
           <div
             style={{
@@ -53,11 +49,11 @@ const LegendBar: React.FC<LegendBarProps> = ({
           <div
             key={val + JSON.stringify(color)}
             style={{
-              height: segmentHeight,
+              height: "40px",
               backgroundColor: `rgba(${color[0]}, ${color[1]}, ${color[2]}, ${
                 color[3] / 255
               })`,
-              width,
+              width: "100%",
               //   borderBottom: "1px solid #000", // Optional: to separate segments
             }}
           />

@@ -1,5 +1,11 @@
 import MapComponent from "./components/MapComponent";
-import { useEffect, useRef, useState, useCallback, useMemo } from "react";
+import React, {
+  useEffect,
+  useRef,
+  useState,
+  useCallback,
+  useMemo,
+} from "react";
 import { TData } from "./types/types";
 import { getClosest, searchApi } from "./api/api";
 import {
@@ -170,8 +176,8 @@ export const App = () => {
         if (abortControllerRef.current) {
           abortControllerRef.current.abort();
         }
-        setSingleSelectedItem(null);
         setLoading(true);
+        setSingleSelectedItem(null);
         abortControllerRef.current = new AbortController();
         let isError = false;
         const res = await getClosest(
@@ -260,9 +266,7 @@ export const App = () => {
           });
       }
       if (isError) return;
-      console.log("REDA", apiRes)
       setSelectedItems([...apiRes]);
-      console.log("HERE", mode, apiRes?.[0]);
       if (innerMode === "id") {
         setSingleSelectedItem(apiRes?.[0] || null);
       }
@@ -272,7 +276,7 @@ export const App = () => {
 
       setLoading(false);
     },
-    [searchText, dateValue, coordinates]
+    [searchText, dateValue, coordinates, mode]
   );
 
   const [showImg, setShowImg] = useState(false);
@@ -286,7 +290,7 @@ export const App = () => {
   function clear() {
     setSingleSelectedItem(null);
     setSearchText("");
-    setMode("bigquery");
+    setMode("automatic");
   }
 
   const [selectedRange, setSelectedRange] = useState({
@@ -314,9 +318,14 @@ export const App = () => {
       selected: map?.[item.IId] ? true : false,
     }));
   }, [data, selectedItems]);
+  const debounceRef = useRef<NodeJS.Timeout>(null);
+  function handleImgClick(item: TData) {
+    setMap([item?.SLat, item?.SLong]);
+    onItemClick(item);
+  }
   return (
     <div className="flex h-screen">
-      <div className="pt-12 px-4 w-1/5 h-full flex flex-col ">
+      <div className="pt-12 bg-[#131416] px-4 w-1/5 h-full flex flex-col ">
         <h1 className="mb-6">Dashboard</h1>
         <div className="flex justify-end gap-2 items-center px-2">
           <label>Show Heatmap</label>
@@ -335,7 +344,6 @@ export const App = () => {
             openOnFocus
             value={searchText}
             onChange={(e) => {
-              // console.log("ZE E", /e);
               setSearchText(e);
             }}
           >
@@ -456,7 +464,7 @@ export const App = () => {
             });
             setSingleSelectedItem(null);
           }}
-          className="w-[fit-content] mt-auto mb-12 cursor-pointer px-2 py-2 rounded-md bg-[#131416] "
+          className="w-[fit-content] mt-auto mb-12 cursor-pointer px-2 py-2 rounded-md bg-[rgb(43,_46,_49)] "
         >
           Reset Filters
         </span>
@@ -469,8 +477,7 @@ export const App = () => {
         <div
           style={{
             flexGrow: "1",
-            height: "70vh",
-            minHeight: "660px",
+            height: "50vh",
           }}
         >
           <MapComponent
@@ -497,7 +504,12 @@ export const App = () => {
                     setCoordinates({ lat, long });
                     return;
                   }
-                  myFn(lat, long);
+                  if (debounceRef.current) {
+                    clearTimeout(debounceRef.current);
+                  }
+                  debounceRef.current = setTimeout(() => {
+                    myFn(lat, long);
+                  }, 2000);
                   setCoordinates({ lat, long });
                 }
               } else if (!coordinates.lat && !coordinates.long) {
@@ -549,12 +561,9 @@ export const App = () => {
                 key={item.IId}
                 className="flex w-[10%] align-center px-2 my-2"
               >
-                <img
-                  onClick={() => {
-                    setMap([item?.SLat, item?.SLong]);
-                    onItemClick(item);
-                  }}
-                  className="w-full object-contain rounded-md transform transition-transform hover:scale-110 hover:shadow-2xl cursor-pointer"
+                <Img
+                  onClick={handleImgClick}
+                  item={item}
                   src={item.Image}
                   alt={item.Image}
                 />
@@ -648,3 +657,30 @@ export const App = () => {
 };
 
 export default App;
+
+export const Img = React.memo(
+  ({
+    src,
+    alt,
+    onClick,
+    item,
+  }: {
+    src: string;
+    alt: string;
+    onClick: (item: TData) => void;
+    item: TData;
+  }) => {
+    const clickHandler = useCallback(() => {
+      onClick(item);
+    }, [item, onClick]);
+    console.log("IMG RERENDERD");
+    return (
+      <img
+        onClick={clickHandler}
+        className="w-full object-contain rounded-md transform transition-transform hover:scale-110 hover:shadow-2xl cursor-pointer"
+        src={src}
+        alt={alt}
+      />
+    );
+  }
+);
