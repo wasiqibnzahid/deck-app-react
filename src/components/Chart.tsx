@@ -103,34 +103,30 @@ export const Chart: React.FC<Props> = ({ data = [] }) => {
     <div>
       <div className="flex gap-2 justify-end items-center my-2">
         <Button
-          colorScheme="gray"
           onClick={() => setMinVal("1year")}
           size="sm"
-          className="bg-[#101216] text-sm text-white whitespace-nowrap"
+          className="!bg-[rgb(43,_46,_49)] text-sm !text-white whitespace-nowrap"
         >
-          1 year
+          1 yeara
         </Button>
         <Button
-          colorScheme="gray"
           onClick={() => setMinVal("3months")}
           size="sm"
-          className="bg-[#101216] text-sm text-white whitespace-nowrap"
+          className="!bg-[rgb(43,_46,_49)] text-sm !text-white whitespace-nowrap"
         >
           3 Months
         </Button>
         <Button
-          colorScheme="gray"
           onClick={() => setMinVal("1month")}
           size="sm"
-          className="bg-[#101216] text-sm text-white whitespace-nowrap"
+          className="!bg-[rgb(43,_46,_49)] text-sm !text-white whitespace-nowrap"
         >
           1 month
         </Button>
         <Button
-          colorScheme="gray"
           onClick={() => setMinVal("1week")}
           size="sm"
-          className="bg-[#101216] text-sm text-white whitespace-nowrap"
+          className="!bg-[rgb(43,_46,_49)] text-sm !text-white whitespace-nowrap"
         >
           1 week
         </Button>

@@ -325,7 +325,7 @@ export const App = () => {
   }
   return (
     <div className="flex h-screen">
-      <div className="pt-12 bg-[#131416] px-4 w-1/5 h-full flex flex-col ">
+      <div className="pt-12 bg-[#131416] px-4 w-1/5 min-w-[380px] h-full flex flex-col ">
         <h1 className="mb-6">Dashboard</h1>
         <div className="flex justify-end gap-2 items-center px-2">
           <label>Show Heatmap</label>
@@ -471,7 +471,7 @@ export const App = () => {
       </div>
 
       <div
-        className="w-[calc(80%_-_10px)] max-h-screen overflow-y-auto"
+        className="flex-grow max-h-screen overflow-y-auto"
         id="scroll-div-custom"
       >
         <div
@@ -584,14 +584,14 @@ export const App = () => {
             >
               <div className="absolute right-2 top-2 flex justify-end items-center gap-2">
                 <div
-                  className="cursor-pointer px-[10px] py-[3px] text-[12px] rounded-md text-lg bg-[#131416]"
+                  className="cursor-pointer px-[10px] py-[3px] text-[12px] rounded-md text-lg bg-[rgb(43,_46,_49)]"
                   onClick={handleScrollToBottom}
                 >
                   View Forecast
                 </div>
                 <div
                   onClick={clear}
-                  className="px-[10px] pb-[5px] rounded-md text-lg bg-[#131416]"
+                  className="px-[10px] pb-[5px] rounded-md text-lg bg-[rgb(43,_46,_49)]"
                   style={{
                     cursor: "pointer",
                   }}
